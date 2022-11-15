@@ -21,11 +21,18 @@ object CsvReader {
     df.printSchema()
     df = applySchemaToDataFrame(df, encoderSchema)
     df.printSchema()
+    df.show()
   }
 
+//  def applySchemaToDataFrame(df: DataFrame, schema: StructType): DataFrame = {
+//    var tmp = df
+//    schema.foreach(field => tmp = tmp.withColumn(field.name, col(field.name).cast(field.dataType)))
+//    tmp
+//  }
+
   def applySchemaToDataFrame(df: DataFrame, schema: StructType): DataFrame = {
-    var tmp = df
-    schema.foreach(field => tmp = tmp.withColumn(field.name, col(field.name).cast(field.dataType)))
-    tmp
+    schema.fields.foldLeft(df) {
+      (df, s) => df.withColumn(s.name, df(s.name).cast(s.dataType))
+    }
   }
 }
