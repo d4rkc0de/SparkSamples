@@ -1,4 +1,4 @@
-package window
+package org.d4rkc0de.window
 
 import org.apache.spark.sql.{SparkSession, functions}
 import org.apache.spark.sql.expressions.Window

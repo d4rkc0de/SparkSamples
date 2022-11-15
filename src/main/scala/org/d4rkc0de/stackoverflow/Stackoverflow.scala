@@ -1,10 +1,10 @@
-package org.d4rkc0de
+package org.d4rkc0de.stackoverflow
 
+import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.DataTypes
 import org.d4rkc0de.common.SparkFactory
-import org.apache.spark.sql.SparkSession
-import org.apache.spark.sql.expressions.Window
 
 object Stackoverflow {
   def main(args: Array[String]): Unit = {
@@ -42,7 +42,7 @@ object Stackoverflow {
     val w = Window.partitionBy("User").orderBy("Date")
     val w2 = Window.partitionBy("User", "partition").orderBy("Date")
     val results = df.withColumn("prev_date", lag("Date", 1, null).over(w))
-      .withColumn("date_diff", datediff(col("date"),col("prev_date")))
+      .withColumn("date_diff", datediff(col("date"), col("prev_date")))
       .withColumn("tmp", when(col("prev_date").isNull.or(col("date_diff").equalTo(1)), 0).otherwise(1))
       .withColumn("partition", sum("tmp").over(w.rowsBetween(Window.unboundedPreceding, Window.currentRow)))
       .withColumn("Rank", dense_rank().over(w2))
