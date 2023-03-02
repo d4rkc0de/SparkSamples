@@ -1,0 +1,38 @@
+[
+  {
+    "event_date": "20221207",
+    "user_properties": [
+      {
+        "key": "user_id",
+        "value": {
+          "set_timestamp_micros": "1670450329209558"
+        }
+      },
+      {
+        "key": "doc_id",
+        "value": {
+          "set_timestamp_micros": "1670450329209558"
+        }
+      }
+    ]
+  },
+  {
+    "event_date": "20221208",
+    "user_properties": [
+      {
+        "key": "account_id",
+        "value": {
+          "int_value": "3176465",
+          "set_timestamp_micros": "1670450323992556"
+        }
+      },
+      {
+        "key": "user_id",
+        "value": {
+          "string_value": "430fdfc579f55f9859173c1bea39713dc11c3ba62e83c24830e3d5936f43c26d",
+          "set_timestamp_micros": "1670450323992556"
+        }
+      }
+    ]
+  }
+]

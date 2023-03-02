@@ -1,0 +1,17 @@
+{
+  "meta": {
+    "a": 1,
+    "b": 2
+  },
+  "objects": [
+    {
+      "caucus": "Progressive",
+      "person": {
+        "name": "Mary",
+        "party": "Green Party",
+        "age": 50,
+        "gender": "female"
+      }
+    }
+  ]
+}

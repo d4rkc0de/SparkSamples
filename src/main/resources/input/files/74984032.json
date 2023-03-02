@@ -1,0 +1,36 @@
+[
+  {
+    "_id": "SOME_ID",
+    "offer": {
+      "name": "foo",
+      "value": "foo"
+    },
+    "delivery": "fooType",
+    "deliveryTypes": [
+      {
+        "country": "en-EN",
+        "expo": "DHL",
+        "possible": true,
+        "insurance": true
+      },
+      {
+        "locale": "us-US",
+        "name": "AMZ",
+        "possible": true,
+        "insurance": true
+      }],
+    "options": [
+      {
+        "name": "foo",
+        "value": "foo"
+      },
+      {
+        "name": "foo",
+        "value": "foo"
+      }
+    ],
+    "storageCodes": ["123F"],
+    "codes": [],
+    "updatedAt": {"$date": "2022-12-06T14:04:07.345Z"}
+  }
+]
