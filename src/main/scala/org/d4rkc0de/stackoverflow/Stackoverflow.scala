@@ -21,7 +21,15 @@ import org.apache.spark.ml.classification.DecisionTreeClassifier
 
 object Stackoverflow extends App {
   val spark = SparkFactory.getSparkSession()
-  q_75476216(spark)
+  q_75649269(spark)
+
+  def q_75649269(spark: SparkSession) = {
+    import spark.implicits._
+    spark.conf.set("spark.sql.legacy.timeParserPolicy", "CORRECTED")
+    val df1 = Seq(("abc", "2017-08-01")).toDF("id", "eventTime")
+    val df2 = df1.withColumn("eventTime1", to_timestamp(col("eventTime"), "yyyy-MM-dd"))
+    df2.show()
+  }
 
   def q_75476216(spark: SparkSession) = {
     import spark.implicits._
