@@ -1,27 +1,125 @@
 package org.d4rkc0de.stackoverflow
 
-import org.apache.spark.sql.{DataFrame, Encoders, Row, SaveMode, SparkSession}
+import org.apache.spark.sql.{DataFrame, Encoders, Row, SaveMode, SparkSession, functions}
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.functions.from_json
-
-import org.apache.spark.sql.types.{ArrayType, DataTypes, DoubleType, IntegerType, MapType, StringType, StructField, StructType}
+import org.apache.spark.sql.types.{ArrayType, DataTypes, DoubleType, IntegerType, LongType, MapType, StringType, StructField, StructType}
 import org.d4rkc0de.common.SparkFactory
 import org.d4rkc0de.models.ZipCode
 
-import scala.collection.Seq
 import scala.util.Random
 import org.apache.spark.ml.feature.VectorAssembler
-import org.apache.spark.ml.linalg.Vectors
-import org.apache.spark.ml.linalg.VectorUDT
 import org.apache.spark.ml.feature.StringIndexer
-import org.apache.spark.ml._
-import org.apache.spark.ml.classification.DecisionTreeClassificationModel
 import org.apache.spark.ml.classification.DecisionTreeClassifier
 
 object Stackoverflow extends App {
   val spark = SparkFactory.getSparkSession()
-  q_75649269(spark)
+  q_75897705(spark)
+
+  def q_75897705(spark: SparkSession) = {
+    val df = spark.read.parquet("src/main/resources/output/files/partitions/75897705/")
+    df.filter(col("Year") >= "2020").explain()
+  }
+
+  def q_75877575(spark: SparkSession) = {
+    val df = spark.read.option("multiline", "true").json("src/main/resources/input/files/75877575.json")
+    df.show(false)
+    df.printSchema()
+    val res = df.withColumn("inner_blob", col("inner_blob").dropFields("identifier_id"))
+      .withColumn("json_blob", struct(col("inner_blob.*"), col("json_blob.*"))).drop("inner_blob")
+    res.repartition(1).write.mode(SaveMode.Overwrite).json("src/main/resources/output/files/75877575_res.json")
+    res.show(false)
+    res.printSchema()
+  }
+
+  def q_75854317(spark: SparkSession) = {
+    val df = spark.read.option("multiline", "true").json("src/main/resources/input/files/flatten.json")
+    df.show(false)
+    df.printSchema()
+    val transformedDF = df.withColumn("user_properties",
+      transform(col("user_properties"), c => struct(c("key"), concat(c("key"), c("key")).as("key")))
+    )
+    transformedDF.show(false)
+    transformedDF.printSchema()
+  }
+
+  def q_75830177(spark: SparkSession) = {
+    val df = spark.createDataFrame(Seq(
+      ("1", "{\"t\":{\"t_id\":\"5678\",\"timestamp\":1675664495,\"tc_id\":\"12345\",\"properties\":[{\"k\":\"psct\",\"value\":\"IN\"},{\"k\":\"ptt\",\"value\":\"SC\"},{\"k\":\"pcd\",\"value\":\"IN, 2023-02-03\"}]}},{\"t\":{\"t_id\":\"1234\",\"properties\":[{\"k\":\"psct\",\"value\":\"IN\"},{\"k\":\"pctt\",\"value\":\"SC\"},{\"k\":\"pcd\",\"value\":\"IN, 2023-02-04\"}],\"timestamp\":1675749213,\"tc_id\":\"67890\"}}"),
+    )).toDF("id", "info")
+
+    val innerSchema = new StructType()
+      .add("t_id", StringType, true)
+      .add("timestamp", LongType, true)
+      .add("tc_id", StringType, true)
+      .add("properties", ArrayType(
+        new StructType()
+          .add("k", StringType, true)
+          .add("value", StringType, true)), true
+      )
+
+    val schema = ArrayType(new StructType()
+      .add("t", innerSchema, true))
+
+    val resDf = df.withColumn("info", concat(lit("["), col("info"), lit("]")))
+      .withColumn("info", from_json(col("info"), schema))
+      .withColumn("info", explode(col("info")))
+      .select("id", "info.*")
+      .select("id", "t.*")
+      .withColumn("properties", explode(col("properties")))
+      .select("id", "t_id", "properties.*")
+    resDf.show(false)
+    resDf.printSchema()
+  }
+
+  def q_75828350(spark: SparkSession) = {
+    val sparkk = SparkSession.builder()
+      .master("local[1]")
+      .appName("SparkSamples")
+      .getOrCreate()
+    sparkk.stop()
+    val spark = SparkSession.builder()
+      .appName("Convert")
+      .master("local[*]")
+      .getOrCreate()
+    import spark.implicits._
+    val df = Seq(("SPEND & ai.  in", "SPEND"), ("TRANSDATA R.A.", "TRANSDATA"), ("Supplier snc", "Supplier"), ("Supplier ltd ,snc", "Supplier ltd")).toDF("Input Text", "processed_text")
+    df.show()
+  }
+
+
+  def q_75688550(spark: SparkSession) = {
+    import spark.implicits._
+    val df = Seq(("SPEND & ai.  in", "SPEND"), ("TRANSDATA R.A.", "TRANSDATA"), ("Supplier snc", "Supplier"), ("Supplier ltd ,snc", "Supplier ltd")).toDF("Input Text", "processed_text")
+    val stopwords = Array("& ai.in", "r.a.", "snc", ",snc")
+
+    def removeStopWordIgnoreSpaces(text: String, stopWord: String): String = {
+      text.zipWithIndex.foreach {
+        case (c, i) => {
+          var j = i
+          if (c != ' ')
+            stopWord.foreach(c2 => {
+              if (c2 != ' ') {
+
+              }
+            })
+          println(s"$i ${text.charAt(i)}")
+        }
+      }
+      text
+    }
+
+    val stopwordsUdf = udf((text: String) => {
+      stopwords.foldLeft(text)((s, stopword) => {
+        val caseInsensitive = s.replaceAll(s"(?i)$stopword", "") // remove stop words case insensitive
+        removeStopWordIgnoreSpaces(caseInsensitive, stopword)
+      })
+    })
+    val processedDf = df.withColumn("Input Text", stopwordsUdf($"Input Text"))
+      .withColumn("processed_text", stopwordsUdf($"processed_text"))
+    df.show()
+    processedDf.show()
+  }
 
   def q_75649269(spark: SparkSession) = {
     import spark.implicits._
@@ -67,6 +165,58 @@ object Stackoverflow extends App {
     )
     resultDf.show(false)
   }
+
+
+  def q_75666886(spark: SparkSession) = {
+    import spark.implicits._
+    val payload = """{"invoice":[{"currency_code":"USD", "customer_detail":{"partner_name":"name","bill_to_city":"Arlington","bill_to_state":"Texas","bill_to_country":"US","contact_phone":"123.456.7890","country_name":"United States"}}]}]}"""
+
+    val df = spark.read.option("multiline", "true")
+      .json(Seq(payload).toDS())
+      .selectExpr("explode(invoice) as invoice")
+      .select("invoice.*")
+    df.printSchema()
+    df.select(col("currency_code"), explode(col("customer_detail")).as("customer_detail"))
+      .select("currency_code", "customer_detail.*").show(false) // Show contents of DataFrame
+
+  }
+
+
+  def q_75655486(spark: SparkSession) = {
+    import spark.implicits._
+    val df = Seq(("1", "a"), ("1", "b"), ("1", "c"), ("1", "d"), ("2", "b"), ("2", "c")).toDF("status", "NEW_GRP_ID")
+    val df2 = Seq(("1", "b"), ("1", "c"), ("1", "d"), ("2", "b")).toDF("status", "NEW_GRP_ID")
+    df.createOrReplaceTempView("df")
+    df2.createOrReplaceTempView("df2")
+
+    spark.sql(
+      s"""
+    select * from df where to_date('2022-12-13') >= '2022-12-13' except select * from df2
+    """).show()
+
+  }
+
+
+  def q_75653576(spark: SparkSession) = {
+    import spark.implicits._
+    val df = Seq(("1", "a"), ("1", "b"), ("1", "c"), ("1", "d"), ("2", "b"), ("2", "c")).toDF("status", "NEW_GRP_ID")
+    df.createOrReplaceTempView("source_data")
+
+    val take = udf((grp_id: Seq[String], n: Int) => {
+      grp_id.take(n)
+    })
+    spark.udf.register("take", take.asNondeterministic())
+    spark.sql(
+      s"""
+    select
+    status,
+    concat_ws(", ", take(collect_set(NEW_GRP_ID), 3)) as new_excp_samples
+    from df
+    group by status
+    """).show()
+
+  }
+
 
   def q_73038844(spark: SparkSession) = {
     import spark.implicits._
@@ -206,9 +356,10 @@ object Stackoverflow extends App {
     val df = spark.sparkContext.parallelize(data).toDF("apples_logic_string", "apples_set")
     val allDf = df.select(explode(col("apples_set")).as("apples_set")).agg(collect_set("apples_set").as("all_apples_set"))
       .withColumn("apples_logic_string", lit("all"))
-    df.join(broadcast(allDf), Seq("apples_logic_string"), "left")
+    val allDfbroadcasted = broadcast(allDf)
+    df.join(allDfbroadcasted, Seq("apples_logic_string"), "left")
       .withColumn("apples_set", when(col("apples_logic_string").equalTo("all"), col("all_apples_set")).otherwise(col("apples_set")))
-      .drop("all_apples_set").show(false)
+      .drop("all_apples_set").explain()
   }
 
 
@@ -282,7 +433,7 @@ object Stackoverflow extends App {
         val fieldtype = field.dataType
         val fieldName = field.name
         fieldtype match {
-          case arrayType: ArrayType =>
+          case _: ArrayType =>
             val fieldNamesExcludingArray = fieldNames.filter(_ != fieldName)
             val fieldNamesAndExplode = fieldNamesExcludingArray ++ Array(s"explode_outer($fieldName) as $fieldName")
             // val fieldNamesToSelect = (fieldNamesExcludingArray ++ Array(s"$fieldName.*"))

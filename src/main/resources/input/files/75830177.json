@@ -1,0 +1,44 @@
+[
+  {
+    "t": {
+      "t_id": "5678",
+      "timestamp": 1675664495,
+      "tc_id": "12345",
+      "properties": [
+        {
+          "k": "psct",
+          "value": "IN"
+        },
+        {
+          "k": "ptt",
+          "value": "SC"
+        },
+        {
+          "k": "pcd",
+          "value": "IN, 2023-02-03"
+        }
+      ]
+    }
+  },
+  {
+    "t": {
+      "t_id": "1234",
+      "properties": [
+        {
+          "k": "psct",
+          "value": "IN"
+        },
+        {
+          "k": "pctt",
+          "value": "SC"
+        },
+        {
+          "k": "pcd",
+          "value": "IN, 2023-02-04"
+        }
+      ],
+      "timestamp": 1675749213,
+      "tc_id": "67890"
+    }
+  }
+]
