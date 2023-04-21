@@ -1,0 +1,30 @@
+[
+  {
+    "meta": {
+      "op": "upd",
+      "table": "BILL.PRODUCTS"
+    },
+    "data": {
+      "DESCRIPTION": "XXX"
+    },
+    "key": {
+      "PRODUCT_ID": "230117",
+      "DESCRIPTION": "Hamsberry vintage tee, cherry",
+      "PRICE": "4099"
+    }
+  },
+  {
+    "meta": {
+      "op": "upd",
+      "table": "BILL.PRODUCTS"
+    },
+    "data": {
+      "PRICE": "4000"
+    },
+    "key": {
+      "PRODUCT_ID": "230117",
+      "DESCRIPTION": "Hamsberry vintage tee, cherry",
+      "PRICE": "3599"
+    }
+  }
+]

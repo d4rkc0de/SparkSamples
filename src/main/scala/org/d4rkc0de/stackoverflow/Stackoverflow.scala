@@ -3,7 +3,7 @@ package org.d4rkc0de.stackoverflow
 import org.apache.spark.sql.{DataFrame, Encoders, Row, SaveMode, SparkSession, functions}
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.types.{ArrayType, DataTypes, DoubleType, IntegerType, LongType, MapType, StringType, StructField, StructType}
+import org.apache.spark.sql.types.{ArrayType, DataTypes, DecimalType, DoubleType, IntegerType, LongType, MapType, StringType, StructField, StructType}
 import org.d4rkc0de.common.SparkFactory
 import org.d4rkc0de.models.ZipCode
 
@@ -14,7 +14,41 @@ import org.apache.spark.ml.classification.DecisionTreeClassifier
 
 object Stackoverflow extends App {
   val spark = SparkFactory.getSparkSession()
-  q_75897705(spark)
+  q_75957101(spark)
+
+  def q_75957101(spark: SparkSession) = {
+    val df = spark.read.option("multiline", "true").json("src/main/resources/input/files/75953660.json")
+    df.withColumn("percentage", regexp_replace(lit("10.62%"), "%", "").cast(DecimalType(10, 2)) / 100)
+      .show(false)
+  }
+
+  def q_75929113(spark: SparkSession) = {
+    val df = spark.read.option("header", "true").option("delimiter", " ").csv("src/main/resources/input/files/partitions/").withColumn("file_name", regexp_extract(input_file_name(), "[^/]*$", 0))
+    df.write.partitionBy("dhi", "file_name").mode(SaveMode.Overwrite).csv("src/main/resources/output/files/partitions/75929113/")
+    df.show(false)
+  }
+
+  case class MyMeta(op: Option[String], table: Option[String])
+
+  case class MyMeta2(parsedMeta: MyMeta)
+
+  def q_75920998(spark: SparkSession) = {
+    import spark.implicits._
+    val metaSchema = Encoders.product[MyMeta].schema
+
+    val path = "src/main/resources/input/files/json_0002C_file.txt"
+    val df = spark.read.text(path)
+    val df2 = df.withColumn("value", from_json(col("value"), MapType(StringType, StringType)))
+    val df3 = df2.select(map_values(col("value")))
+    val df4 = df3.select(col("map_values(value)")(0).as("meta"))
+    df4.show(false)
+    df4.printSchema()
+    df4.withColumn("parsedMeta", from_json(col("meta"), metaSchema)).drop("meta").printSchema()
+    metaSchema.printTreeString()
+    val df5 = df4.withColumn("parsedMeta", from_json(col("meta"), metaSchema)).drop("meta").as[MyMeta2]
+    df5.show(false)
+    df5.printSchema()
+  }
 
   def q_75897705(spark: SparkSession) = {
     val df = spark.read.parquet("src/main/resources/output/files/partitions/75897705/")
